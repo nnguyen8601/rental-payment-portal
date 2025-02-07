@@ -1,20 +1,47 @@
-document.getElementById('paymentForm').addEventListener('submit', function(e) {
+// Stripe Publishable Key (use your own key from your Stripe account)
+const stripe = Stripe('your-publishable-key'); // Replace with your Stripe public key
+const elements = stripe.elements();
+const cardElement = elements.create('card');
+cardElement.mount('#card-element');
+
+// Form and status elements
+const paymentForm = document.getElementById('paymentForm');
+const statusElement = document.getElementById('status');
+
+// Submit the form when the user clicks 'Pay Now'
+paymentForm.addEventListener('submit', async function (e) {
     e.preventDefault();
 
-    let fullName = document.getElementById('fullName').value;
-    let amount = document.getElementById('amount').value;
-    let paymentMethod = document.getElementById('paymentMethod').value;
-    let cardNumber = document.getElementById('cardNumber').value;
+    // Collect input values
+    const fullName = document.getElementById('fullName').value;
+    const amount = document.getElementById('amount').value;
 
-    if (!fullName || !amount || !paymentMethod || (paymentMethod === 'creditCard' && !cardNumber)) {
-        alert("Please fill all fields correctly.");
-        return;
+    // Create a token with Stripe Elements
+    const { token, error } = await stripe.createToken(cardElement);
+
+    if (error) {
+        // Show the error message
+        statusElement.innerText = `Error: ${error.message}`;
+    } else {
+        // Send the token to your server for processing
+        const response = await fetch('/create-payment-intent', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                token: token.id,
+                amount: amount,
+                fullName: fullName,
+            }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            statusElement.innerText = `Payment of $${amount} was successful! Thank you, ${fullName}!`;
+        } else {
+            statusElement.innerText = `Payment failed: ${result.error}`;
+        }
     }
-
-    document.getElementById('status').innerText = `Processing payment for ${fullName}...`;
-
-    // Simulating a payment process
-    setTimeout(() => {
-        document.getElementById('status').innerText = `Payment of $${amount} was successful! Thank you, ${fullName}!`;
-    }, 2000);
 });
