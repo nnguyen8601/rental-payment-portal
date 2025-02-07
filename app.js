@@ -1,5 +1,5 @@
 // Stripe Publishable Key (use your own key from your Stripe account)
-const stripe = Stripe('your-publishable-key'); // Replace with your Stripe public key
+const stripe = Stripe('pk_test_51QpuWqIoZ1ArbyYlO1Kny6CjFzKjrb1usugPbqH3LjqZhK8sYIDYQU9YM9JOH4fKfXWv6qinCbhRsaRMrWtZuGWo00IkikkKWL'); // Replace with your Stripe public key
 const elements = stripe.elements();
 const cardElement = elements.create('card');
 cardElement.mount('#card-element');
